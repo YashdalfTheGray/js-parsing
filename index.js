@@ -1,19 +1,50 @@
 const { readFileSync, existsSync, mkdirSync, writeFileSync } = require('fs');
+const { parse } = require('path');
 const espree = require('espree');
 const { generate } = require('escodegen');
+const { traverse, replace } = require('estraverse');
+const { cloneDeep, chain, map, zip } = require('lodash');
 
 try {
-    const contents = readFileSync('./testfiles/simple.js', 'utf-8');
+    const filePaths = ['./testfiles/simple.js', './testfiles/functions.js'];
 
-    const ast = espree.parse(contents, { range: false, loc: false });
-    ast.body[0].kind = 'const';
+    const asts = getAst(...filePaths);
+
+    asts.forEach(a => {
+        console.log('\n============= AST start =============');
+        traverse(a, {
+            enter: function(node, parent) {
+                // if (node.type === 'VariableDeclaration') {
+                //     const newNode = cloneDeep(node);
+                //     newNode.kind = 'const';
+                //     return newNode;
+                // }
+                console.log(node.type);
+            }
+        });
+        console.log('============== AST end ==============\n');
+    });
 
     if (!existsSync('./build')) {
         mkdirSync('./build');
     }
 
-    writeFileSync('./build/simple.js', generate(ast));
+    writeAstsToFile(filePaths, asts);
 }
 catch (e) {
     console.log(e);
+}
+
+function getAst(...files) {
+    return files
+    .map(f => readFileSync(f, 'utf-8'))
+    .map(c => espree.parse(c));
+}
+
+function writeAstsToFile(paths, asts) {
+    return chain(filePaths)
+    .map(fp => `./build/${parse(fp).base}`)
+    .zip(asts.map(a => generate(a)))
+    .forEach(p => writeFileSync(...p))
+    .value();
 }
