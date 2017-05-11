@@ -11,6 +11,8 @@
   },
   "dependencies": {
     "escodegen": "^1.8.1",
-    "espree": "^3.4.3"
+    "espree": "^3.4.3",
+    "estraverse": "^4.2.0",
+    "lodash": "^4.17.4"
   }
 }
