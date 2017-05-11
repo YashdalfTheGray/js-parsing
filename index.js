@@ -6,7 +6,13 @@ const { traverse, replace } = require('estraverse');
 const { cloneDeep, chain, map, zip } = require('lodash');
 
 try {
-    const filePaths = ['./testfiles/simple.js', './testfiles/functions.js'];
+    const filePaths = [
+        'simple.js',
+        'functions.js',
+        'requires.js',
+        'angular1.js',
+        'angular2.js'
+    ].map(n => `./testfiles/${n}`);
 
     const asts = getAst(...filePaths);
 
@@ -42,7 +48,7 @@ function getAst(...files) {
 }
 
 function writeAstsToFile(paths, asts) {
-    return chain(filePaths)
+    return chain(paths)
     .map(fp => `./build/${parse(fp).base}`)
     .zip(asts.map(a => generate(a)))
     .forEach(p => writeFileSync(...p))
